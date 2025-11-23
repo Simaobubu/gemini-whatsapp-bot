@@ -1,0 +1,42 @@
+modules = ["python-3.11"]
+
+[agent]
+expertMode = true
+integrations = ["python_gemini:1.0.0", "twilio:1.0.0"]
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+# Workflow principal
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+# CORREÇÃO AQUI 👇 — comando correto para rodar o Flask no botão Run
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "python3 app.py"
+
+# Workflow do deploy (CloudRun)
+[[workflows.workflow]]
+name = "Flask WhatsApp Bot"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "gunicorn --bind=0.0.0.0:5000 --reuse-port --workers=2 app:app"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "cloudrun"
